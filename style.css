@@ -1,0 +1,202 @@
+body {
+  background: #12132a;
+  color: #4AF626;
+  font-family: 'Share Tech Mono', 'Orbitron', monospace;
+  margin: 0;
+  padding: 0;
+  cursor: none;
+}
+
+.container {
+  max-width: 900px;
+  margin: auto;
+  padding: 24px;
+}
+
+.neon {
+  color: #4AF626;
+  text-shadow: 0 0 8px #0ff, 0 0 24px #0ff;
+  font-family: 'Orbitron', sans-serif;
+}
+
+.neon-logo {
+  font-size: 1.8em;
+  font-family: 'Orbitron', sans-serif;
+  color: #0ff;
+  text-shadow: 0 0 10px #0ff, 0 0 40px #00ff88;
+}
+.alt-color {
+  color: #00ff88;
+}
+
+.neon-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+  background: rgba(16, 32, 32, 0.7);
+  padding: 18px;
+  border-radius: 18px;
+  border: 2px solid #00ffe7;
+  box-shadow: 0 0 24px #00ffe7 inset;
+}
+
+.nav-links a {
+  color: #4Af626;
+  margin: 0 12px;
+  text-decoration: none;
+  font-weight: bold;
+  letter-spacing: 2px;
+  text-shadow: 0 0 7px #00ffe7;
+  transition: color 0.2s;
+}
+.nav-links a:hover {
+  color: #4AF626;
+}
+
+.neon-animate {
+  font-family: 'Orbitron', monospace;
+  font-size: 2.3em;
+  color: #4AF626;
+  text-shadow: 0 0 8px #0ff, 0 0 24px #0ff, 0 0 56px #66ffee;
+  animation: neon-glow 1.5s infinite alternate;
+  margin-bottom: 20px;
+}
+
+@keyframes neon-glow {
+  from {
+    text-shadow: 0 0 8px #0ff, 0 0 24px #0ff, 0 0 48px #66ffee;
+  }
+  to {
+    text-shadow: 0 0 28px #3fffd3, 0 0 60px #0ff, 0 0 80px #00ff88;
+  }
+}
+
+.hero, .featured-section {
+  text-align: center;
+  margin-bottom: 42px;
+}
+
+.cyber-btn {
+  background: transparent;
+  color: #4AF626;
+  border: 2px solid #0ff;
+  padding: 12px 34px;
+  margin: 14px 0;
+  border-radius: 12px;
+  font-family: 'Orbitron', monospace;
+  text-shadow: 0 0 12px #0ff;
+  box-shadow: 0 0 16px #0ff;
+  transition: box-shadow .2s, color .2s, background .2s;
+  cursor: pointer;
+  font-size: 1.1em;
+}
+.cyber-btn:hover {
+  box-shadow: 0 0 44px #0ff, 0 0 96px #00ff88;
+  color: #12132a;
+  background: #0ff;
+}
+
+.neon-card {
+  border: 2px solid #4AF626;
+  border-radius: 22px;
+  background: rgba(18, 34, 42, 0.85);
+  box-shadow: 0 0 32px #00ffe7 inset;
+  padding: 28px;
+  margin-bottom: 38px;
+}
+
+.neon-grid {
+  display: flex;
+  gap: 22px;
+  justify-content: space-between;
+  margin-bottom: 32px;
+}
+.neon-subcard {
+  flex: 1;
+  border: 2px solid #4AF626;
+  border-radius: 20px;
+  background: rgba(22, 50, 60, 0.85);
+  box-shadow: 0 0 16px #00ffe7 inset;
+  padding: 25px;
+  margin: 0 8px;
+}
+
+.featured-section {
+  border: 2px dashed #4AF626;
+  border-radius: 18px;
+  padding: 24px;
+  margin-bottom: 32px;
+}
+.featured-list {
+  list-style: square;
+  color: #4AF626;
+  font-size: 1em;
+  margin-top: 18px;
+  line-height: 1.7em;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 18px;
+}
+input, textarea {
+  background: rgba(16,32,32, 0.7);
+  border: 2px solid #0ff;
+  border-radius: 10px;
+  font-family: 'Share Tech Mono', monospace;
+  color: #FFF;
+  padding: 12px;
+  font-size: 1em;
+  outline: none;
+}
+input:focus, textarea:focus {
+  border-color: #4AF626;
+  box-shadow: 0 0 8px #00ff88;
+}
+
+.neon-footer {
+  background: rgba(16, 32, 32, 0.8);
+  border-top: 2px solid #00ffe7;
+  color: #4AF626;
+  padding: 18px 0 0;
+  margin-top: 42px;
+  font-family: 'Orbitron', monospace;
+  border-radius: 15px;
+  box-shadow: 0 -2px 18px #016f29;
+  text-align: center;
+}
+.footer-links a {
+  color: #4AF626;
+  margin: 0 14px;
+  text-decoration: none;
+  font-weight: bold;
+  font-size: 1.04em;
+}
+
+.desc {
+  font-size: 1em;
+  margin: 12px 0;
+  color: #4AF626;
+}
+
+/* Neon Cursor */
+.neon-cursor {
+  position: fixed;
+  width: 18px;
+  height: 18px;
+  background: #4AF626;
+  border-radius: 50%;
+  box-shadow: 0 0 32px #0ff, 0 0 48px #00ff88;
+  pointer-events: none;
+  z-index: 9999;
+  transition: transform .07s;
+}
+
+@media (max-width: 800px) {
+  .container { padding: 6px; }
+  .neon-grid { flex-direction: column; }
+  .neon-subcard { margin: 12px 0; }
+}
