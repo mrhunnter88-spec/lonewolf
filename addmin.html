@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Admin Panel - Device Features</title>
+  <style>
+    body {
+      background: #121212;
+      color: #4af626;
+      font-family: 'Courier New', Courier, monospace;
+      margin: 0;
+      display: flex;
+      height: 100vh;
+    }
+    nav {
+      width: 220px;
+      background: #1a1a1a;
+      padding: 20px;
+      border-right: 1px solid #4af626;
+    }
+    nav button {
+      background: none;
+      color: #4af626;
+      border: 1px solid #4af626;
+      padding: 10px;
+      margin: 5px 0;
+      width: 100%;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    nav button.active {
+      background-color: #4af626;
+      color: #121212;
+    }
+    main {
+      flex-grow: 1;
+      padding: 20px;
+    }
+    .feature-panel {
+      display: none;
+    }
+    .feature-panel.active {
+      display: block;
+    }
+    button.action-btn {
+      background-color: #4af626;
+      color: #121212;
+      padding: 10px 15px;
+      border: none;
+      cursor: pointer;
+      font-size: 16px;
+      margin-top: 10px;
+    }
+    pre {
+      background: #222;
+      padding: 10px;
+      border-radius: 5px;
+      overflow-x: auto;
+      max-height: 200px;
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <button class="nav-btn active" data-target="notifications">Notifications</button>
+    <button class="nav-btn" data-target="geolocation">Geolocation</button>
+    <button class="nav-btn" data-target="camera-mic">Camera & Microphone</button>
+    <button class="nav-btn" data-target="clipboard">Clipboard</button>
+    <button class="nav-btn" data-target="contacts">Contacts Picker</button>
+    <button class="nav-btn" data-target="file-picker">File Picker</button>
+    <button class="nav-btn" data-target="screen-share">Screen Sharing</button>
+    <button class="nav-btn" data-target="photos">Photos</button>
+    <button class="nav-btn" data-target="videos">videos</button>
+    <button class="nav-btn" data-target="messages">messages</button>
+  </nav>
+
+  <main>
+    <section id="notifications" class="feature-panel active">
+      <h2>Notifications</h2>
+      <button class="action-btn" id="requestNotificationPerm">Request Permission</button>
+      <button class="action-btn" id="sendNotification">Send Notification</button>
+      <pre id="notificationOutput"></pre>
+    </section>
+
+    <section id="geolocation" class="feature-panel">
+      <h2>Geolocation</h2>
+      <button class="action-btn" id="getLocation">Get Location</button>
+      <pre id="locationOutput"></pre>
+    </section>
+
+    <section id="camera-mic" class="feature-panel">
+      <h2>Camera & Microphone</h2>
+      <button class="action-btn" id="requestCameraMic">Request Access</button>
+      <pre id="cameraMicOutput"></pre>
+    </section>
+
+    <section id="clipboard" class="feature-panel">
+      <h2>Clipboard</h2>
+      <button class="action-btn" id="readClipboard">Read Text</button>
+      <button class="action-btn" id="writeClipboard">Write Text</button>
+      <pre id="clipboardOutput"></pre>
+    </section>
+
+    <section id="contacts" class="feature-panel">
+      <h2>Contacts Picker</h2>
+      <button class="action-btn" id="pickContacts">Pick Contacts</button>
+      <pre id="contactsOutput"></pre>
+    </section>
+
+    <section id="file-picker" class="feature-panel">
+      <h2>File Picker</h2>
+      <input type="file" id="fileInput" multiple />
+      <pre id="fileOutput"></pre>
+    </section>
+
+    <section id="screen-share" class="feature-panel">
+      <h2>Screen Sharing</h2>
+      <button class="action-btn" id="shareScreen">Share Screen</button>
+      <video id="screenVideo" autoplay playsinline style="width: 100%; max-height: 300px; margin-top: 10px;"></video>
+      <pre id="screenOutput"></pre>
+    </section>
+  </main>
+
+  <script>
+    // Navigation buttons
+    const navButtons = document.querySelectorAll('nav .nav-btn');
+    const panels = document.querySelectorAll('.feature-panel');
+    navButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        navButtons.forEach(b => b.classList.remove('active'));
+        panels.forEach(p => p.classList.remove('active'));
+
+        btn.classList.add('active');
+        const target = btn.getAttribute('data-target');
+        document.getElementById(target).classList.add('active');
+      });
+    });
+
+    // Notifications Feature
+    const notificationOutput = document.getElementById('notificationOutput');
+    document.getElementById('requestNotificationPerm').addEventListener('click', () => {
+      Notification.requestPermission().then(permission => {
+        notificationOutput.textContent = `Permission: ${permission}`;
+      });
+    });
+    document.getElementById('sendNotification').addEventListener('click', () => {
+      if (Notification.permission === 'granted') {
+        new Notification('Admin Panel', {
+          body: 'This is a notification from the admin panel.',
+          icon: '',
+        });
+        notificationOutput.textContent = 'Notification sent!';
+      } else {
+        notificationOutput.textContent = 'Notification permission not granted.';
+      }
+    });
+
+    // Geolocation Feature
+    const locationOutput = document.getElementById('locationOutput');
+    document.getElementById('getLocation').addEventListener('click', () => {
+      if ('geolocation' in navigator) {
+        navigator.geolocation.getCurrentPosition((pos) => {
+          locationOutput.textContent = `Latitude: ${pos.coords.latitude}\nLongitude: ${pos.coords.longitude}`;
+        }, (err) => {
+          locationOutput.textContent = `Error: ${err.message}`;
+        });
+      } else {
+        locationOutput.textContent = 'Geolocation API not supported.';
+      }
+    });
+
+    // Camera & Microphone Feature
+    const cameraMicOutput = document.getElementById('cameraMicOutput');
+    document.getElementById('requestCameraMic').addEventListener('click', async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        cameraMicOutput.textContent = 'Access granted. Streaming...';
+        // Could display stream in video element here if desired
+        stream.getTracks().forEach(track => track.stop()); // Stop tracks immediately
+      } catch (err) {
+        cameraMicOutput.textContent = 'Access denied or error: ' + err.message;
+      }
+    });
+
+    // Clipboard Feature
+    const clipboardOutput = document.getElementById('clipboardOutput');
+    document.getElementById('readClipboard').addEventListener('click', async () => {
+      try {
+        const text = await navigator.clipboard.readText();
+        clipboardOutput.textContent = 'Clipboard content: ' + text;
+      } catch (err) {
+        clipboardOutput.textContent = 'Read denied or error: ' + err.message;
+      }
+    });
+    document.getElementById('writeClipboard').addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText('Some sample text from admin panel.');
+        clipboardOutput.textContent = 'Clipboard updated!';
+      } catch (err) {
+        clipboardOutput.textContent = 'Write denied or error: ' + err.message;
+      }
+    });
+
+    // Contacts Picker Feature
+    const contactsOutput = document.getElementById('contactsOutput');
+    const contactsSupported = 'contacts' in navigator && 'ContactsManager' in window;
+    document.getElementById('pickContacts').addEventListener('click', async () => {
+      if (!contactsSupported) {
+        contactsOutput.textContent = 'Contact Picker API not supported in this browser.';
+        return;
+      }
+      try {
+        const contacts = await navigator.contacts.select(['name', 'email', 'tel'], { multiple: true });
+        contactsOutput.textContent = JSON.stringify(contacts, null, 2);
+      } catch (err) {
+        contactsOutput.textContent = 'Permission denied or error: ' + err.message;
+      }
+    });
+
+    // File Picker Feature
+    const fileOutput = document.getElementById('fileOutput');
+    const fileInput = document.getElementById('fileInput');
+    fileInput.addEventListener('change', () => {
+      const fileList = Array.from(fileInput.files).map(f => `${f.name} (${f.type}) - ${f.size} bytes`);
+      fileOutput.textContent = fileList.join('\n');
+    });
+
+    // Screen Sharing Feature
+    const screenOutput = document.getElementById('screenOutput');
+    const screenVideo = document.getElementById('screenVideo');
+    document.getElementById('shareScreen').addEventListener('click', async () => {
+      try {
+        const stream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+        screenVideo.srcObject = stream;
+        screenOutput.textContent = 'Screen sharing started.';
+        stream.getVideoTracks()[0].addEventListener('ended', () => {
+          screenOutput.textContent = 'Screen sharing stopped.';
+          screenVideo.srcObject = null;
+        });
+      } catch (err) {
+        screenOutput.textContent = 'Screen share denied or error: ' + err.message;
+      }
+    });
+  </script>
+</body>
+</html>

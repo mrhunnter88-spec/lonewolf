@@ -199,4 +199,65 @@ input:focus, textarea:focus {
   .container { padding: 6px; }
   .neon-grid { flex-direction: column; }
   .neon-subcard { margin: 12px 0; }
+} 
+
+.rotating-logo {
+  width: 160px;
+  height: 160px;
+  border: 6px solid #4AF626; /* Neon green border */
+  border-radius: 50%;
+  box-shadow: 0 0 24px #4AF626;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: auto;
 }
+
+.rotating-logo img {
+  width: 90px;
+  height: 90px;
+  animation: rotateLogo 2s linear infinite;
+}
+
+@keyframes rotateLogo {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.services-list {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.services-list li {
+  background: #0d0d0d;
+  border: 2px solid #4AF626;
+  padding: 15px 20px;
+  border-radius: 12px;
+  box-shadow: 0 0 8px #0ff;
+  color: #0ff;
+  font-weight: 600;
+  transition: box-shadow 0.3s, color 0.3s;
+}
+
+.services-list li strong {
+  display: block;
+  font-size: 1.1rem;
+  margin-bottom: 6px;
+  color: #00ffff;
+  text-shadow: 0 0 8px #00ffff;
+}
+
+.services-list li:hover {
+  box-shadow: 0 0 16px #5ff, 0 0 24px #5ff;
+  color: #5ff;
+  cursor: pointer;
+}
+
