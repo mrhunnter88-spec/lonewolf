@@ -18,7 +18,7 @@
             padding: 24px;
         }
         #terminal-output {
-            height: 350px;
+            height: 320px;
             overflow-y: auto;
             background: #111;
             border-radius: 6px;
@@ -27,10 +27,13 @@
             font-size: 1rem;
             white-space: pre-wrap;
         }
-        #command-form {
+        #command-form,
+        #apk-form {
             display: flex;
+            margin-bottom: 10px;
         }
-        #command-input {
+        #command-input,
+        #apk-file {
             flex: 1;
             font-size: 1rem;
             padding: 10px;
@@ -43,6 +46,20 @@
         #command-input::placeholder {
             color: #777;
         }
+        #install-btn {
+            margin-left: 10px;
+            padding: 10px 20px;
+            background: #2979ff;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        #install-btn:disabled {
+            background: #888;
+            cursor: not-allowed;
+        }
     </style>
 </head>
 <body>
@@ -51,41 +68,70 @@
         <form id="command-form" autocomplete="off">
             <input type="text" id="command-input" placeholder="Enter command..." autofocus>
         </form>
+        <form id="apk-form" autocomplete="off">
+            <input type="file" accept=".apk" id="apk-file">
+            <button type="submit" id="install-btn">Install APK</button>
+        </form>
     </div>
     <script>
         const terminalOutput = document.getElementById('terminal-output');
         const commandForm = document.getElementById('command-form');
         const commandInput = document.getElementById('command-input');
+        const apkForm = document.getElementById('apk-form');
+        const apkFileInput = document.getElementById('apk-file');
+        const installBtn = document.getElementById('install-btn');
+        let ws;
+
+        function show(msg) {
+            terminalOutput.innerHTML += msg + '\n';
+            terminalOutput.scrollTop = terminalOutput.scrollHeight;
+        }
 
         // Change this URL to your backend WebSocket endpoint
-        const ws = new WebSocket('ws://localhost:8080');
-
-        ws.onmessage = function(event) {
-            const data = event.data;
-            terminalOutput.innerHTML += data + '\n';
-            terminalOutput.scrollTop = terminalOutput.scrollHeight;
-        };
+        ws = new WebSocket('ws://localhost:8080');
 
         ws.onopen = function() {
-            terminalOutput.innerHTML += "🟢 Connected to backend.\n";
+            show("🟢 WebSocket connected.");
         };
 
         ws.onclose = function() {
-            terminalOutput.innerHTML += "🔴 Disconnected from backend.\n";
+            show("🔴 WebSocket disconnected.");
         };
 
-        ws.onerror = function() {
-            terminalOutput.innerHTML += "❗ WebSocket error.\n";
+        ws.onerror = function(error) {
+            show("❗ WebSocket error.");
+        };
+
+        ws.onmessage = function(event) {
+            show(event.data);
         };
 
         commandForm.addEventListener('submit', function(e) {
             e.preventDefault();
             const command = commandInput.value.trim();
             if (command && ws.readyState === ws.OPEN) {
-                terminalOutput.innerHTML += '$ ' + command + '\n';
-                ws.send(command);
+                show('$ ' + command);
+                ws.send(JSON.stringify({type: "command", data: command}));
                 commandInput.value = '';
             }
+        });
+
+        apkForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const file = apkFileInput.files[0];
+            if (!file || ws.readyState !== ws.OPEN) return;
+            installBtn.disabled = true;
+            show('[APK] Uploading: ' + file.name);
+            // Step 1: Send the file as ArrayBuffer
+            const reader = new FileReader();
+            reader.onload = function() {
+                ws.send(reader.result); // Backend must save incoming binary!
+                show('[APK] Uploaded. Installing...');
+                // Step 2: Ask backend to install this
+                ws.send(JSON.stringify({type: "command", data: `pm install /data/data/com.termux/files/home/${file.name}`}));
+                installBtn.disabled = false;
+            }
+            reader.readAsArrayBuffer(file);
         });
     </script>
 </body>
