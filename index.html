@@ -1,144 +1,65 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Termux Web Installer</title>
-    <style>
-        body {
-            background: #222;
-            color: #eee;
-            font-family: 'Fira Mono', monospace;
-        }
-        #termux-app {
-            max-width: 600px;
-            margin: 40px auto;
-            background: #161616;
-            border-radius: 8px;
-            box-shadow: 0 0 10px #0008;
-            padding: 24px;
-        }
-        #terminal-output {
-            height: 320px;
-            overflow-y: auto;
-            background: #111;
-            border-radius: 6px;
-            padding: 16px;
-            margin-bottom: 14px;
-            font-size: 1rem;
-            white-space: pre-wrap;
-        }
-        #command-form,
-        #apk-form {
-            display: flex;
-            margin-bottom: 10px;
-        }
-        #command-input,
-        #apk-file {
-            flex: 1;
-            font-size: 1rem;
-            padding: 10px;
-            color: #fff;
-            background: #252525;
-            border: none;
-            border-radius: 4px;
-            outline: none;
-        }
-        #command-input::placeholder {
-            color: #777;
-        }
-        #install-btn {
-            margin-left: 10px;
-            padding: 10px 20px;
-            background: #2979ff;
-            color: #fff;
-            border: none;
-            border-radius: 4px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-        #install-btn:disabled {
-            background: #888;
-            cursor: not-allowed;
-        }
-    </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Termux Web Terminal Clone</title>
+<style>
+  body {
+      background: #222;
+      color: #eee;
+      font-family: monospace;
+      margin: 0;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+  }
+  #terminal {
+      background: #111;
+      flex-grow: 1;
+      overflow-y: auto;
+      padding: 10px;
+      white-space: pre-wrap;
+      font-size: 14px;
+  }
+  #input {
+      background: #252525;
+      border: none;
+      color: #eee;
+      font-size: 1rem;
+      padding: 10px;
+      outline: none;
+      width: 100%;
+      box-sizing: border-box;
+  }
+</style>
 </head>
 <body>
-    <div id="termux-app">
-        <div id="terminal-output"></div>
-        <form id="command-form" autocomplete="off">
-            <input type="text" id="command-input" placeholder="Enter command..." autofocus>
-        </form>
-        <form id="apk-form" autocomplete="off">
-            <input type="file" accept=".apk" id="apk-file">
-            <button type="submit" id="install-btn">Install APK</button>
-        </form>
-    </div>
-    <script>
-        const terminalOutput = document.getElementById('terminal-output');
-        const commandForm = document.getElementById('command-form');
-        const commandInput = document.getElementById('command-input');
-        const apkForm = document.getElementById('apk-form');
-        const apkFileInput = document.getElementById('apk-file');
-        const installBtn = document.getElementById('install-btn');
-        let ws;
+  <div id="terminal"></div>
+  <input id="input" type="text" autofocus placeholder="Enter command...">
+  <script>
+      const term = document.getElementById('terminal');
+      const input = document.getElementById('input');
+      const ws = new WebSocket(`ws://${location.host}`);
 
-        function show(msg) {
-            terminalOutput.innerHTML += msg + '\n';
-            terminalOutput.scrollTop = terminalOutput.scrollHeight;
-        }
+      ws.onopen = () => term.textContent += '🟢 Connected to backend shell\n';
+      ws.onclose = () => term.textContent += '\n🔴 Disconnected from backend\n';
+      ws.onerror = () => term.textContent += '\n❗ WebSocket error\n';
+      ws.onmessage = (e) => {
+          term.textContent += e.data;
+          term.scrollTop = term.scrollHeight;
+      };
 
-        // Change this to your backend WebSocket URL
-        ws = new WebSocket('ws://localhost:8080');
-
-        ws.onopen = function() {
-            show("🟢 WebSocket connected.");
-        };
-
-        ws.onclose = function() {
-            show("🔴 WebSocket disconnected.");
-        };
-
-        ws.onerror = function(error) {
-            show("❗ WebSocket error.");
-        };
-
-        ws.onmessage = function(event) {
-            show(event.data);
-        };
-
-        // Terminal command submit
-        commandForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            const command = commandInput.value.trim();
-            if (command && ws.readyState === ws.OPEN) {
-                show('$ ' + command);
-                ws.send(JSON.stringify({type: "command", data: command}));
-                commandInput.value = '';
-            }
-        });
-
-        // APK Upload and Installer prompt trigger
-        apkForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            const file = apkFileInput.files[0];
-            if (!file || ws.readyState !== ws.OPEN) return;
-            installBtn.disabled = true;
-            show('[APK] Uploading: ' + file.name);
-
-            // Step 1: Send the binary file
-            const reader = new FileReader();
-            reader.onload = function() {
-                ws.send(reader.result); // Backend must save this upload!
-                show('[APK] Uploaded. Requesting install prompt...');
-                // Step 2: Tell backend to launch the installer prompt
-                ws.send(JSON.stringify({
-                  type: "command",
-                   `termux-open /data/data/com.termux/files/home/${file.name}`
-                }));
-                installBtn.disabled = false;
-            }
-            reader.readAsArrayBuffer(file);
-        });
-    </script>
+      input.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' && ws.readyState === WebSocket.OPEN) {
+              const cmd = input.value.trim();
+              if (cmd.length > 0) {
+                  term.textContent += `$ ${cmd}\n`;
+                  ws.send(cmd);
+                  input.value = '';
+              }
+          }
+      });
+  </script>
 </body>
 </html>
