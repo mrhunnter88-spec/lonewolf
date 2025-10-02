@@ -1,134 +1,92 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>CyberMaze Security - Neon Clone</title>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <title>Termux Web Shell</title>
+    <style>
+        body {
+            background: #222;
+            color: #eee;
+            font-family: 'Fira Mono', monospace;
+        }
+        #termux-app {
+            max-width: 600px;
+            margin: 40px auto;
+            background: #161616;
+            border-radius: 8px;
+            box-shadow: 0 0 10px #0008;
+            padding: 24px;
+        }
+        #terminal-output {
+            height: 350px;
+            overflow-y: auto;
+            background: #111;
+            border-radius: 6px;
+            padding: 16px;
+            margin-bottom: 14px;
+            font-size: 1rem;
+            white-space: pre-wrap;
+        }
+        #command-form {
+            display: flex;
+        }
+        #command-input {
+            flex: 1;
+            font-size: 1rem;
+            padding: 10px;
+            color: #fff;
+            background: #252525;
+            border: none;
+            border-radius: 4px;
+            outline: none;
+        }
+        #command-input::placeholder {
+            color: #777;
+        }
+    </style>
 </head>
 <body>
-<div class="container"> 
-
-  <!-- Neon Navbar -->
-  <nav class="neon-nav">
-    <span class="neon-logo">CyberMaze<span class="alt-color">Security</span></span>
-    <div class="nav-links">
-      <a href="#home">Home</a>
-      <a href="#services">Services</a>
-      <a href="#about">About</a>
-      <a href="#contact">Contact</a>
-      <a href="#gear">Gear Store</a>
+    <div id="termux-app">
+        <div id="terminal-output"></div>
+        <form id="command-form" autocomplete="off">
+            <input type="text" id="command-input" placeholder="Enter command..." autofocus>
+        </form>
     </div>
-  </nav>
+    <script>
+        const terminalOutput = document.getElementById('terminal-output');
+        const commandForm = document.getElementById('command-form');
+        const commandInput = document.getElementById('command-input');
 
-  <!-- Hero Section -->
-  <section class="hero">
-    <h1 class="neon-animate">Defend Against Cyber Criminals</h1>
-    <p class="desc">With engaging security awareness <span class="neon">videos</span>, training, talks, and testing.</p>
-    <button class="cyber-btn">Get Started</button>
-  </section> 
-<section>
-  <div class="rotating-logo">
-    <img src="your-logo.png" alt="Circular Logo">
-  </div>
-</section>
+        // Change this URL to your backend WebSocket endpoint
+        const ws = new WebSocket('ws://localhost:8080');
 
+        ws.onmessage = function(event) {
+            const data = event.data;
+            terminalOutput.innerHTML += data + '\n';
+            terminalOutput.scrollTop = terminalOutput.scrollHeight;
+        };
 
-  <!-- Services Section -->
-  <section class="neon-grid">
-    <div class="neon-subcard">
-      <h3>01 / FAST</h3>
-      <p>Our video modules keep your team's attention with quick, customized training and social engineering events.</p>
-    </div>
-    <div class="neon-subcard">
-      <h3>02 / CATCHY</h3>
-      <p>Training modules are catchy and memorable with music, choruses, and interactive hacker activities.</p>
-    </div>
-    <div class="neon-subcard">
-      <h3>03 / FUN</h3>
-      <p>Events are interactive, role-based, and always fresh — keeping your audience engaged throughout.</p>
-    </div>
-  </section>
+        ws.onopen = function() {
+            terminalOutput.innerHTML += "🟢 Connected to backend.\n";
+        };
 
-  <!-- Available Services (Added Section) -->
-  <section id=services class="neon-card">
-    <h2 class="neon">Available Services</h2>
-    <ul class="services-list">
-      <li><strong>Social Media Takeover: <span class="alt-color"></span></strong> Learn how attackers hijack accounts and how to defend against it.</li>
-      <li><strong>Web Exploitation:</strong> Protect your websites from hackers exploiting security loopholes.</li>
-      <li><strong>Binary Exploitation:</strong> Understand how attackers break programs to take control of systems.</li>
-      <li><strong>Reverse Engineering:</strong> Discover how hackers dissect software to find weaknesses.</li>
-      <li><strong>Digital Forensics:</strong> Learn how to trace digital crimes and recover crucial evidence.</li>
-      <li><strong>Mobile Exploitation:</strong> Understand mobile app and device risks to avoid being compromised.</li>
-      <li><strong>Cloud Security:</strong> Secure data stored in cloud services and prevent leaks or breaches.</li>
-      <li><strong>Blockchain Exploitation:</strong> Explore vulnerabilities in blockchain and cryptocurrency systems.</li>
-      <li><strong>Hardware / IoT Exploitation:</strong> Learn how connected devices can be hacked—and protected.</li>
-      <li><strong>AI / ML Security:</strong> Prevent artificial intelligence systems from being tricked or abused.</li>
-      <li><strong>Crypto Exploitation:</strong> Understand weaknesses in cryptography and how to safeguard data.</li>
-      <li><strong>Radio / Wireless Takeover:</strong> Explore how signals can be jammed, intercepted, or controlled.</li>
-      <li><strong>Steganography:</strong> Learn how data can be hidden inside images, audio, or text secretly.</li>
-      <li><strong>Networking:</strong> Understand how attackers exploit networks and how defenses can stop them.</li>
-    </ul>
-  </section>
+        ws.onclose = function() {
+            terminalOutput.innerHTML += "🔴 Disconnected from backend.\n";
+        };
 
-  <!-- About Section -->
-  <section id=about class="neon-card">
-    <h2 class="neon">About Us</h2>
-    <p class="desc">
-      We are friendly hackers who strengthen your first line of defense — your people. 
-       excelled in social engineering, while Evan leads technical ops.
-    </p>
-    <p class="desc">
-      Our mission: Teach organizations to spot and shut down social engineering attacks by becoming Politely Paranoid.
-    </p>
-  </section> 
+        ws.onerror = function() {
+            terminalOutput.innerHTML += "❗ WebSocket error.\n";
+        };
 
-    <!-- Clients Section -->
-  <section class="neon-card">
-    <h2 class="neon">Our Clients</h2>
-    <p class="desc">Legal, financial, medical, and technology clients that prefer to remain private.</p>
-  </section>
-
-  <!-- Featured Media Section -->
-  <section class="featured-section">
-    <h2 class="neon">Featured In</h2>
-    <ul class="featured-list">
-      <li>NYT: "Twitter Struggles to Unpack a Hack Within Its Walls"</li>
-      <li>WSJ: "What Hackers Can Learn About You From Social Media"</li>
-      <li>Wired: "The Attack That Broke Twitter Is Hitting Dozens of Companies"</li>
-      <li>CNN: "Why this company thinks music videos can teach online security"</li>
-      <li>The Economist: "Human Insecurity"</li>
-    </ul>
-  </section>
-
-  <!-- Contact Section -->
-  <section id="contact" class="neon-card">
-  <h2 class="neon">Contact Us</h2>
-  <form id="contact-form"action="https://formspree.io/f/mqadwgag" method="POST">
-    <input type="text" name="name" placeholder="Name" required>
-    <input type="number" name="contact-number" placeholder="Contact Number" required>
-    <input type="email" name="email" placeholder="Email" required>
-    <textarea name="message" placeholder="Your message..." required></textarea>
-    <button class="cyber-btn" type="submit">Send</button>
-  </form>
-  <p class="desc">Or join our mailing list for updates and trainings.</p>
-</section>
-
-  <!-- Footer -->
-  <footer class="neon-footer">
-    <div>
-      2025 &copy; CyberMaze Security | Terms & Conditions | Privacy & Policy
-    </div>
-    <div class="footer-links">
-      <a href="#">Home</a>
-      <a href="#">Services</a>
-      <a href="#">Contact</a>
-      <a href="#">Gear Store</a>
-    </div>
-  </footer>
-</div>
-<!-- Neon Cursor -->
-<div class="neon-cursor"></div>
-<script src="script.js"></script>
+        commandForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const command = commandInput.value.trim();
+            if (command && ws.readyState === ws.OPEN) {
+                terminalOutput.innerHTML += '$ ' + command + '\n';
+                ws.send(command);
+                commandInput.value = '';
+            }
+        });
+    </script>
 </body>
 </html>
