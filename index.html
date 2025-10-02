@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Termux Web Terminal Clone</title>
+<title>Termux Web Terminal with APK Installer</title>
 <style>
   body {
       background: #222;
@@ -13,6 +13,7 @@
       height: 100vh;
       display: flex;
       flex-direction: column;
+      padding: 10px;
   }
   #terminal {
       background: #111;
@@ -21,6 +22,8 @@
       padding: 10px;
       white-space: pre-wrap;
       font-size: 14px;
+      border-radius: 4px;
+      margin-bottom: 10px;
   }
   #input {
       background: #252525;
@@ -31,35 +34,112 @@
       outline: none;
       width: 100%;
       box-sizing: border-box;
+      border-radius: 4px;
+  }
+  #apk-form {
+      display: flex;
+      margin-top: 10px;
+  }
+  #apk-file {
+      flex-grow: 1;
+      border-radius: 4px;
+      padding: 6px;
+  }
+  #install-btn {
+      padding: 8px 16px;
+      margin-left: 10px;
+      background: #2979ff;
+      border: none;
+      border-radius: 4px;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+  }
+  #install-btn:disabled {
+      background: #888;
+      cursor: not-allowed;
   }
 </style>
 </head>
 <body>
   <div id="terminal"></div>
-  <input id="input" type="text" autofocus placeholder="Enter command...">
-  <script>
-      const term = document.getElementById('terminal');
-      const input = document.getElementById('input');
-      const ws = new WebSocket(`ws://${location.host}`);
+  <input id="input" type="text" autofocus placeholder="Enter shell command..." />
+  
+  <form id="apk-form" autocomplete="off">
+    <input type="file" accept=".apk" id="apk-file" />
+    <button type="submit" id="install-btn">Install APK</button>
+  </form>
 
-      ws.onopen = () => term.textContent += '🟢 Connected to backend shell\n';
-      ws.onclose = () => term.textContent += '\n🔴 Disconnected from backend\n';
-      ws.onerror = () => term.textContent += '\n❗ WebSocket error\n';
-      ws.onmessage = (e) => {
-          term.textContent += e.data;
-          term.scrollTop = term.scrollHeight;
+  <script>
+    const terminal = document.getElementById('terminal');
+    const input = document.getElementById('input');
+    const apkForm = document.getElementById('apk-form');
+    const apkFileInput = document.getElementById('apk-file');
+    const installBtn = document.getElementById('install-btn');
+
+    const ws = new WebSocket(`ws://${location.host}`);
+
+    function show(msg) {
+      terminal.textContent += msg + '\n';
+      terminal.scrollTop = terminal.scrollHeight;
+    }
+
+    ws.onopen = () => show('🟢 Connected to backend');
+    ws.onclose = () => show('🔴 Disconnected from backend');
+    ws.onerror = () => show('❗ WebSocket error');
+    ws.onmessage = e => {
+      show(e.data);
+    };
+
+    input.addEventListener('keydown', e => {
+      if(e.key === 'Enter' && ws.readyState === WebSocket.OPEN) {
+        const cmd = input.value.trim();
+        if(cmd.length > 0) {
+          show(`$ ${cmd}`);
+          ws.send(JSON.stringify({ type: 'command',  cmd }));
+          input.value = '';
+        }
+      }
+    });
+
+    apkForm.addEventListener('submit', e => {
+      e.preventDefault();
+      const file = apkFileInput.files[0];
+      if (!file) {
+        alert('Please select an APK file');
+        return;
+      }
+      if (ws.readyState !== WebSocket.OPEN) {
+        alert('WebSocket disconnected');
+        return;
+      }
+
+      installBtn.disabled = true;
+      show(`[APK] Uploading ${file.name}...`);
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        // Send APK as binary
+        ws.send(reader.result);
+
+        show('[APK] Upload complete, saving on backend...');
+
+        // Tell backend to save APK file
+        ws.send(JSON.stringify({ type: 'command',  `save-apk:${file.name}` }));
+
+        // Trigger the Android installer prompt via termux-open
+        ws.send(JSON.stringify({
+          type: 'command',
+           `termux-open /data/data/com.termux/files/home/${file.name}`
+        }));
+
+        show('[APK] Installer prompt triggered');
+
+        installBtn.disabled = false;
       };
 
-      input.addEventListener('keydown', (e) => {
-          if (e.key === 'Enter' && ws.readyState === WebSocket.OPEN) {
-              const cmd = input.value.trim();
-              if (cmd.length > 0) {
-                  term.textContent += `$ ${cmd}\n`;
-                  ws.send(cmd);
-                  input.value = '';
-              }
-          }
-      });
+      reader.readAsArrayBuffer(file);
+    });
   </script>
 </body>
 </html>
