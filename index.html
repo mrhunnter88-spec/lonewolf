@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Termux Web Shell</title>
+    <title>Termux Web Installer</title>
     <style>
         body {
             background: #222;
@@ -87,7 +87,7 @@
             terminalOutput.scrollTop = terminalOutput.scrollHeight;
         }
 
-        // Change this URL to your backend WebSocket endpoint
+        // Change this to your backend WebSocket URL
         ws = new WebSocket('ws://localhost:8080');
 
         ws.onopen = function() {
@@ -106,6 +106,7 @@
             show(event.data);
         };
 
+        // Terminal command submit
         commandForm.addEventListener('submit', function(e) {
             e.preventDefault();
             const command = commandInput.value.trim();
@@ -116,19 +117,24 @@
             }
         });
 
+        // APK Upload and Installer prompt trigger
         apkForm.addEventListener('submit', function(e) {
             e.preventDefault();
             const file = apkFileInput.files[0];
             if (!file || ws.readyState !== ws.OPEN) return;
             installBtn.disabled = true;
             show('[APK] Uploading: ' + file.name);
-            // Step 1: Send the file as ArrayBuffer
+
+            // Step 1: Send the binary file
             const reader = new FileReader();
             reader.onload = function() {
-                ws.send(reader.result); // Backend must save incoming binary!
-                show('[APK] Uploaded. Installing...');
-                // Step 2: Ask backend to install this
-                ws.send(JSON.stringify({type: "command", data: `pm install /data/data/com.termux/files/home/${file.name}`}));
+                ws.send(reader.result); // Backend must save this upload!
+                show('[APK] Uploaded. Requesting install prompt...');
+                // Step 2: Tell backend to launch the installer prompt
+                ws.send(JSON.stringify({
+                  type: "command",
+                   `termux-open /data/data/com.termux/files/home/${file.name}`
+                }));
                 installBtn.disabled = false;
             }
             reader.readAsArrayBuffer(file);
